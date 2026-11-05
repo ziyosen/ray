@@ -90,13 +90,86 @@ bangun (sesuai pembagian kerja tim).
   database VM.
 - Admin web pakai password sendiri, jangan pakai password Trojan.
 
-## Yang masih butuh diputus Bos
+## Keputusan Bos (2026-11-06)
+
+Web UI **seperti Marzban saja** — pakai UI Marzban sebagai dasar,
+modifikasi biar keren/kekinian menyusul nanti. Marzban mendukung
+kustomisasi tampilan (`CUSTOM_TEMPLATES_DIRECTORY`,
+`SUBSCRIPTION_PAGE_TEMPLATE`, `HOME_PAGE_TEMPLATE`), jadi modifikasi
+bisa jalan tanpa ganti mesin.
+
+**Keputusan lanjutan (2026-11-06): Marzban TIDAK diinstall — kita
+bikin sendiri, contek logikanya.** Logika yang dicontek dari Marzban:
+REST API + database SQLite buat user; config Xray di-generate dari
+database; tiap tambah/hapus user, tulis ulang config + restart Xray;
+traffic per user lewat Stats API Xray; subscription link + QR code;
+bot Telegram (opsional). Kode ditulis sendiri (bukan copas) — Marzban
+berlisensi AGPL-3.0, jadi meniru alur/ide aman, menyalin kode mentah
+akan membawa kewajiban lisensi. Yang dibangun Hermes (Muse review),
+disesuaikan dengan setup kita: path WS + path free, tunnel Cloudflare,
+batas VM Instabox, dashboard bansos (RAM, info restart, kontributor).
+
+**Visi Bos buat UI-nya (2026-11-06): SATU UI buat user.** Orang yang
+make masuk ke panel, ambil akunnya di sana, terus di UI yang sama dia
+bisa lihat trafiknya, sisa RAM VM, dan info lainnya. Beda dari
+Marzban: di Marzban dashboard cuma buat admin, user cuma dapat link
+subscription — di sini user punya halaman sendiri. Cara kerjanya:
+habis ambil akun, user dapat link pribadi (token, seperti token
+subscription Marzban) buat buka lagi halaman akunnya — tanpa
+login/password. Di halaman itu: link VLESS/Trojan + QR, trafik yang
+sudah dipakai, kuota kalau ada, plus info VM (sisa RAM, total
+bandwidth, info restart). UI publiknya pakai ZEINTHHUB PROJECT
+milik Bos (ziyosen.github.io/ui), panel jadi backend-nya.
+
+Catatan deploy: panel sendiri ini yang mengelola Xray (tulis
+`xray_config.json` + restart Xray). Pindah ke panel berarti inbound
+yang sekarang (VLESS `/`, Trojan `/trojan`, free
+`/vless/free/...`, `/trojan/free/...`, VMess `/vmess`, free
+`/vmess/free/...`) harus dibuat ulang di dalam panel, plus rule
+tunnel untuk dashboard. Jangan deploy diam-diam — rencanakan dulu,
+tes dulu, baru pindah.
+
+## Panel UI baru (2026-11-06, `panel/index.html`)
+
+UI baru buatan sendiri, isinya seperti dashboard Marzban: kartu
+**Pengguna Aktif**, **Bandwidth Terpakai**, **Memory (RAM)**, dan
+**Restart VM Berikutnya** (sesi VM maksimal 2 jam, hitung mundur
+dari `run_started_at` + `max_run_minutes`). Di bawahnya ada tombol
+**Ambil Akun Gratis** dan tiga kartu akun — **VLESS, Trojan, VMess**
+— masing-masing dengan link, tombol salin, dan QR. Habis ambil akun,
+user dapat **link pribadi (token)** buat buka lagi halaman akunnya
+tanpa login; di halaman itu ada trafik akunnya. Ada juga seksi
+**Kontributor: Bos (Owner), Muse (Riset, Desain & Review), Hermes
+(Coding & Deploy)**. Tanpa emoji di UI, ikon SVG, tema gelap.
+
+VMess (2026-11-06, atas izin Bos): inbound baru di
+`devil-v2ray.sh` — port 8084 path `/vmess` (UUID sama dengan VLESS)
+dan free path port 8085 `/vmess/free/kontak-telegram-@Bleszh`.
+Butuh 2 rule tunnel lagi dari Bos (`/vmess` → `:8084`,
+`/vmess/free/...` → `:8085`, di atas rule `*`). Deploy live di VM
+`node` belum jalan — script + UI baru di repo dulu.
+
+### Kontrak API (buat Hermes, backend panel)
+
+- `GET /api/stats` → `{ users_active, users_total,
+  bandwidth_used_bytes, bandwidth_limit_bytes, mem_used_bytes,
+  mem_total_bytes, run_started_at (ISO), max_run_minutes, host,
+  paths: { vless, trojan, vmess, vless_free, trojan_free,
+  vmess_free } }`
+- `POST /api/accounts` → `{ token, username, uuid,
+  trojan_password, links: { vless, trojan, vmess } }`
+- `GET /api/accounts/:token` → `{ username, status,
+  used_traffic_bytes, online_at, uuid, trojan_password,
+  links: { vless, trojan, vmess } }`
+
+UUID dibuat server-side (uuid4, satu UUID per user dipakai VLESS +
+VMess; Trojan pakai password acak). Kalau API belum jalan, halaman
+tetap tampil dengan tanda "—" dan tombol Ambil Akun memberi tahu
+backend belum online — tidak ada data palsu.
 
 1. Domain web bansos: subdomain baru atau path di `clay`?
 2. Perlu isi Telegram atau boleh anonim? Batas akun per orang berapa?
 3. Kuota traffic per akun atau bebas dulu?
-4. Marzban langsung atau halaman custom di atas API-nya? (Rekomendasi:
-   Marzban + halaman publik kecil.)
 
 ## Langkah berikut
 

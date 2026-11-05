@@ -1,0 +1,507 @@
+<!DOCTYPE html>
+<html lang="id">
+<head>
+<meta charset="UTF-8">
+<meta name="viewport" content="width=device-width, initial-scale=1.0">
+<title>ZEINTHHUB PROJECT — Panel Bansos</title>
+<style>
+  :root {
+    --bg: #0b0f14;
+    --card: #12181f;
+    --card-2: #171f28;
+    --line: #232d38;
+    --text: #e6edf3;
+    --muted: #8b98a5;
+    --accent: #2f81f7;
+    --accent-2: #1f6feb;
+    --green: #3fb950;
+    --amber: #d29922;
+    --red: #f85149;
+    --radius: 14px;
+  }
+  * { box-sizing: border-box; margin: 0; padding: 0; }
+  body {
+    background: var(--bg);
+    color: var(--text);
+    font-family: -apple-system, BlinkMacSystemFont, "Segoe UI", Roboto, Helvetica, Arial, sans-serif;
+    line-height: 1.55;
+    padding: 0 16px 64px;
+  }
+  .wrap { max-width: 960px; margin: 0 auto; }
+  header {
+    display: flex; align-items: center; justify-content: space-between;
+    padding: 28px 0 8px; gap: 16px; flex-wrap: wrap;
+  }
+  .brand { display: flex; align-items: center; gap: 12px; }
+  .brand .logo {
+    width: 44px; height: 44px; border-radius: 12px;
+    background: linear-gradient(135deg, #1f6feb, #2f81f7 55%, #79c0ff);
+    display: flex; align-items: center; justify-content: center;
+    font-weight: 800; font-size: 20px; color: #fff;
+  }
+  .brand h1 { font-size: 20px; letter-spacing: .2px; }
+  .brand small { display: block; color: var(--muted); font-size: 13px; font-weight: 400; }
+  .status {
+    display: flex; align-items: center; gap: 8px;
+    border: 1px solid var(--line); border-radius: 999px;
+    padding: 6px 14px; font-size: 13px; color: var(--muted);
+    background: var(--card);
+  }
+  .dot { width: 9px; height: 9px; border-radius: 50%; background: var(--amber); }
+  .dot.on { background: var(--green); }
+  .dot.off { background: var(--red); }
+  .hero { padding: 18px 0 8px; }
+  .hero h2 { font-size: 26px; margin-bottom: 6px; }
+  .hero p { color: var(--muted); max-width: 640px; }
+  .notice {
+    margin-top: 16px; padding: 12px 16px; border-radius: var(--radius);
+    border: 1px solid var(--amber); background: rgba(210,153,34,.08);
+    color: #e3b341; font-size: 14px; display: none;
+  }
+  .notice.show { display: block; }
+  .grid {
+    display: grid; gap: 14px; margin-top: 22px;
+    grid-template-columns: repeat(4, 1fr);
+  }
+  @media (max-width: 760px) { .grid { grid-template-columns: repeat(2, 1fr); } }
+  .card {
+    background: var(--card); border: 1px solid var(--line);
+    border-radius: var(--radius); padding: 18px;
+  }
+  .stat .label {
+    color: var(--muted); font-size: 13px;
+    display: flex; align-items: center; gap: 7px; margin-bottom: 8px;
+  }
+  .stat .label svg { width: 16px; height: 16px; stroke: var(--muted); }
+  .stat .value { font-size: 26px; font-weight: 700; line-height: 1.1; }
+  .stat .sub { color: var(--muted); font-size: 12.5px; margin-top: 6px; }
+  .bar {
+    height: 8px; border-radius: 99px; background: var(--card-2);
+    margin-top: 12px; overflow: hidden;
+  }
+  .bar > div { height: 100%; border-radius: 99px; background: var(--accent); width: 0%; transition: width .5s; }
+  .bar > div.warn { background: var(--amber); }
+  section { margin-top: 34px; }
+  section > h3 { font-size: 18px; margin-bottom: 4px; }
+  section > p.desc { color: var(--muted); font-size: 14px; margin-bottom: 14px; }
+  .btn {
+    display: inline-flex; align-items: center; gap: 8px;
+    background: var(--accent-2); color: #fff; border: none; cursor: pointer;
+    font-size: 15px; font-weight: 600; border-radius: 10px; padding: 12px 22px;
+  }
+  .btn:hover { background: #388bfd; }
+  .btn:disabled { opacity: .55; cursor: not-allowed; }
+  .btn.ghost {
+    background: transparent; border: 1px solid var(--line); color: var(--text);
+    font-weight: 500; padding: 10px 16px; font-size: 14px;
+  }
+  .btn.ghost:hover { border-color: var(--accent); }
+  .btn.small { padding: 8px 14px; font-size: 13px; border-radius: 8px; }
+  .account-grid { display: grid; gap: 14px; grid-template-columns: repeat(3, 1fr); margin-top: 16px; }
+  @media (max-width: 760px) { .account-grid { grid-template-columns: 1fr; } }
+  .account { background: var(--card); border: 1px solid var(--line); border-radius: var(--radius); padding: 18px; }
+  .account h4 { display: flex; align-items: center; gap: 8px; font-size: 16px; margin-bottom: 10px; }
+  .proto {
+    font-size: 11px; font-weight: 700; letter-spacing: .6px;
+    background: var(--card-2); border: 1px solid var(--line);
+    border-radius: 6px; padding: 2px 7px; color: var(--accent);
+  }
+  .account .linkbox {
+    background: var(--bg); border: 1px solid var(--line); border-radius: 8px;
+    padding: 10px 12px; font-size: 12px; word-break: break-all;
+    color: var(--muted); min-height: 64px; font-family: ui-monospace, monospace;
+  }
+  .account .row { display: flex; gap: 8px; margin-top: 12px; flex-wrap: wrap; }
+  .account .qr { margin-top: 14px; text-align: center; }
+  .account .qr img { width: 150px; height: 150px; border-radius: 8px; background: #fff; padding: 6px; }
+  .account .qr small { display: block; color: var(--muted); margin-top: 6px; font-size: 12px; }
+  .tokenbox { display: flex; gap: 8px; margin-top: 12px; flex-wrap: wrap; }
+  .tokenbox input {
+    flex: 1; min-width: 220px; background: var(--bg); color: var(--text);
+    border: 1px solid var(--line); border-radius: 10px; padding: 11px 14px; font-size: 14px;
+  }
+  .people { display: grid; gap: 14px; grid-template-columns: repeat(3, 1fr); }
+  @media (max-width: 760px) { .people { grid-template-columns: 1fr; } }
+  .person { background: var(--card); border: 1px solid var(--line); border-radius: var(--radius); padding: 18px; }
+  .person .avatar {
+    width: 46px; height: 46px; border-radius: 50%; margin-bottom: 10px;
+    display: flex; align-items: center; justify-content: center;
+    font-weight: 800; font-size: 18px; color: #fff;
+  }
+  .person h4 { font-size: 16px; }
+  .person .role { color: var(--accent); font-size: 13px; font-weight: 600; margin: 2px 0 6px; }
+  .person p { color: var(--muted); font-size: 13.5px; }
+  footer { margin-top: 44px; border-top: 1px solid var(--line); padding-top: 18px; color: var(--muted); font-size: 13.5px; }
+  footer a { color: var(--accent); text-decoration: none; }
+  .hidden { display: none !important; }
+  .copied { color: var(--green) !important; }
+</style>
+</head>
+<body>
+<div class="wrap">
+
+  <header>
+    <div class="brand">
+      <div class="logo">Z</div>
+      <div>
+        <h1>ZEINTHHUB PROJECT</h1>
+        <small>Panel Bansos — VLESS · Trojan · VMess</small>
+      </div>
+    </div>
+    <div class="status"><span class="dot" id="apiDot"></span><span id="apiText">Menghubungkan ke panel…</span></div>
+  </header>
+
+  <div class="hero">
+    <h2>Akun gratis, tanpa registrasi.</h2>
+    <p>Ambil akunmu di bawah, salin ke aplikasi VPN (v2rayNG, NekoBox, atau yang lain), dan pakai. Satu halaman ini juga menampilkan trafik, sisa RAM VM, dan info restart.</p>
+    <div class="notice" id="apiNotice">Panel API belum online. Statistik dan tombol ambil akun aktif setelah backend panel jalan.</div>
+  </div>
+
+  <!-- Statistik: isi sama seperti Marzban -->
+  <div class="grid">
+    <div class="card stat">
+      <div class="label">
+        <svg viewBox="0 0 24 24" fill="none" stroke-width="2"><path d="M17 21v-2a4 4 0 0 0-4-4H5a4 4 0 0 0-4 4v2"/><circle cx="9" cy="7" r="4"/><path d="M23 21v-2a4 4 0 0 0-3-3.87"/><path d="M16 3.13a4 4 0 0 1 0 7.75"/></svg>
+        Pengguna Aktif
+      </div>
+      <div class="value" id="statUsers">—</div>
+      <div class="sub" id="statUsersSub">dari total — pengguna</div>
+    </div>
+    <div class="card stat">
+      <div class="label">
+        <svg viewBox="0 0 24 24" fill="none" stroke-width="2"><path d="M22 12h-4l-3 9L9 3l-3 9H2"/></svg>
+        Bandwidth Terpakai
+      </div>
+      <div class="value" id="statBw">—</div>
+      <div class="sub" id="statBwSub">total semua pengguna</div>
+      <div class="bar"><div id="statBwBar"></div></div>
+    </div>
+    <div class="card stat">
+      <div class="label">
+        <svg viewBox="0 0 24 24" fill="none" stroke-width="2"><rect x="2" y="3" width="20" height="14" rx="2"/><line x1="8" y1="21" x2="16" y2="21"/><line x1="12" y1="17" x2="12" y2="21"/></svg>
+        Memory (RAM)
+      </div>
+      <div class="value" id="statMem">—</div>
+      <div class="sub" id="statMemSub">sisa RAM VM</div>
+      <div class="bar"><div id="statMemBar"></div></div>
+    </div>
+    <div class="card stat">
+      <div class="label">
+        <svg viewBox="0 0 24 24" fill="none" stroke-width="2"><polyline points="23 4 23 10 17 10"/><path d="M20.49 15a9 9 0 1 1-2.12-9.36L23 10"/></svg>
+        Restart VM Berikutnya
+      </div>
+      <div class="value" id="statRestart">—</div>
+      <div class="sub" id="statRestartSub">VM jalan maksimal 2 jam per sesi, lalu restart otomatis</div>
+    </div>
+  </div>
+
+  <!-- Ambil akun -->
+  <section>
+    <h3>Ambil Akun</h3>
+    <p class="desc">Satu klik, dapat tiga protokol sekaligus: VLESS, Trojan, dan VMess. Semua memakai UUID/password yang sama dengan akunmu — simpan link pribadimu di bawah supaya bisa kembali ke halaman ini.</p>
+    <button class="btn" id="btnClaim">Ambil Akun Gratis</button>
+    <span id="claimMsg" style="margin-left:12px;color:var(--muted);font-size:14px;"></span>
+
+    <div class="account-grid hidden" id="accountGrid">
+      <div class="account">
+        <h4>VLESS <span class="proto">WS · TLS</span></h4>
+        <div class="linkbox" id="linkVless">—</div>
+        <div class="row">
+          <button class="btn ghost small" data-copy="linkVless">Salin Link</button>
+        </div>
+        <div class="qr"><img id="qrVless" alt="QR VLESS"><small>Scan pakai v2rayNG / NekoBox</small></div>
+      </div>
+      <div class="account">
+        <h4>Trojan <span class="proto">WS · TLS</span></h4>
+        <div class="linkbox" id="linkTrojan">—</div>
+        <div class="row">
+          <button class="btn ghost small" data-copy="linkTrojan">Salin Link</button>
+        </div>
+        <div class="qr"><img id="qrTrojan" alt="QR Trojan"><small>Scan pakai v2rayNG / NekoBox</small></div>
+      </div>
+      <div class="account">
+        <h4>VMess <span class="proto">WS · TLS</span></h4>
+        <div class="linkbox" id="linkVmess">—</div>
+        <div class="row">
+          <button class="btn ghost small" data-copy="linkVmess">Salin Link</button>
+        </div>
+        <div class="qr"><img id="qrVmess" alt="QR VMess"><small>Scan pakai v2rayNG / NekoBox</small></div>
+      </div>
+    </div>
+
+    <div id="myAccount" class="hidden" style="margin-top:18px;">
+      <div class="card">
+        <strong>Link pribadiku</strong>
+        <p style="color:var(--muted);font-size:13.5px;margin:4px 0 0;">Simpan link ini. Buka lagi kapan saja untuk melihat trafikmu dan menyalin ulang akunmu — tanpa login.</p>
+        <div class="tokenbox">
+          <input id="tokenLink" readonly>
+          <button class="btn ghost small" data-copy="tokenLink">Salin Link Pribadi</button>
+        </div>
+      </div>
+    </div>
+
+    <div style="margin-top:18px;">
+      <p style="color:var(--muted);font-size:13.5px;margin-bottom:8px;">Sudah punya akun? Tempel link pribadimu di sini untuk membuka akunmu lagi:</p>
+      <div class="tokenbox">
+        <input id="tokenInput" placeholder="https://…/panel/?token=…">
+        <button class="btn ghost" id="btnOpen">Buka Akunku</button>
+      </div>
+    </div>
+  </section>
+
+  <!-- Trafik saya -->
+  <section id="myTraffic" class="hidden">
+    <h3>Trafik Saya</h3>
+    <p class="desc">Pemakaian akunmu sejauh ini.</p>
+    <div class="grid" style="grid-template-columns: repeat(3, 1fr);">
+      <div class="card stat">
+        <div class="label">Terpakai</div>
+        <div class="value" id="myUsed">—</div>
+        <div class="sub" id="myUsedSub">sejak akun dibuat</div>
+      </div>
+      <div class="card stat">
+        <div class="label">Status</div>
+        <div class="value" id="myStatus" style="font-size:20px;">—</div>
+        <div class="sub" id="myStatusSub">aktif / habis / kedaluwarsa</div>
+      </div>
+      <div class="card stat">
+        <div class="label">Terakhir Online</div>
+        <div class="value" id="myOnline" style="font-size:20px;">—</div>
+        <div class="sub">waktu terakhir akunmu terhubung</div>
+      </div>
+    </div>
+  </section>
+
+  <!-- Kontributor -->
+  <section>
+    <h3>Kontributor</h3>
+    <p class="desc">Panel ini dibangun bareng-bareng, bukan kerja satu orang.</p>
+    <div class="people">
+      <div class="person">
+        <div class="avatar" style="background:#1f6feb;">B</div>
+        <h4>Bos</h4>
+        <div class="role">Owner</div>
+        <p>Pemilik proyek, yang pegang UI dan keputusan akhir.</p>
+      </div>
+      <div class="person">
+        <div class="avatar" style="background:#8957e5;">M</div>
+        <h4>Muse</h4>
+        <div class="role">Riset, Desain &amp; Review</div>
+        <p>Riset, desain, verifikasi langsung, dan review kode.</p>
+      </div>
+      <div class="person">
+        <div class="avatar" style="background:#238636;">H</div>
+        <h4>Hermes</h4>
+        <div class="role">Coding &amp; Deploy</div>
+        <p>Eksekusi kode, integrasi API, dan deploy ke server.</p>
+      </div>
+    </div>
+  </section>
+
+  <footer>
+    Panel ini gratis selamanya selama RAM VM masih cukup. Kalau mau bantu, donasi membantu sewa VPS supaya layanan bisa jalan terus.
+    Butuh bantuan? Hubungi <a href="https://t.me/Bleszh" target="_blank" rel="noopener">@Bleszh</a> di Telegram.
+    <br>© 2026 ZEINTHHUB PROJECT.
+  </footer>
+
+</div>
+
+<script>
+/*
+ * Panel Bansos — front-end.
+ * Kontrak API (backend panel, dibuat Hermes):
+ *   GET  /api/stats            -> { users_active, users_total,
+ *                                   bandwidth_used_bytes, bandwidth_limit_bytes,
+ *                                   mem_used_bytes, mem_total_bytes,
+ *                                   run_started_at (ISO), max_run_minutes,
+ *                                   host, paths: { vless, trojan, vmess,
+ *                                                  vless_free, trojan_free, vmess_free } }
+ *   POST /api/accounts         -> { token, username, uuid, trojan_password,
+ *                                   links: { vless, trojan, vmess } }
+ *   GET  /api/accounts/:token  -> { username, status, used_traffic_bytes,
+ *                                   online_at, uuid, trojan_password,
+ *                                   links: { vless, trojan, vmess } }
+ * Kalau API belum jalan, halaman tetap tampil dengan tanda "—"
+ * dan tombol Ambil Akun memberi tahu backend belum online.
+ * UUID dibuat server-side (uuid4), bukan di browser — link di bawah
+ * hanya dirangkai dari UUID yang sudah didaftarkan server.
+ */
+var API_BASE = ""; // kosong = origin yang sama; isi URL backend kalau beda host
+var HOST = "clay.xinquins.de5.net";
+var PATHS = {
+  vless: "/", trojan: "/trojan", vmess: "/vmess",
+  vless_free: "/vless/free/kontak-telegram-@Bleszh",
+  trojan_free: "/trojan/free/kontak-telegram-@Bleszh",
+  vmess_free: "/vmess/free/kontak-telegram-@Bleszh"
+};
+var apiOnline = false;
+var currentAccount = null;
+
+function $(id) { return document.getElementById(id); }
+function fmtBytes(n) {
+  if (n == null || isNaN(n)) return "—";
+  var u = ["B", "KB", "MB", "GB", "TB"], i = 0;
+  while (n >= 1024 && i < u.length - 1) { n /= 1024; i++; }
+  return (Math.round(n * 100) / 100) + " " + u[i];
+}
+function fmtTime(iso) {
+  if (!iso) return "—";
+  var d = new Date(iso);
+  return isNaN(d) ? "—" : d.toLocaleString("id-ID");
+}
+function b64encode(str) {
+  return btoa(unescape(encodeURIComponent(str))).replace(/=+$/, "");
+}
+function buildVlessLink(uuid, name) {
+  var p = encodeURIComponent(PATHS.vless_free);
+  return "vless://" + uuid + "@" + HOST + ":443?encryption=none&security=tls&sni=" + HOST +
+    "&type=ws&host=" + HOST + "&path=" + p + "#" + encodeURIComponent(name);
+}
+function buildTrojanLink(pass, name) {
+  var p = encodeURIComponent(PATHS.trojan_free);
+  return "trojan://" + pass + "@" + HOST + ":443?security=tls&sni=" + HOST +
+    "&type=ws&host=" + HOST + "&path=" + p + "#" + encodeURIComponent(name);
+}
+function buildVmessLink(uuid, name) {
+  var obj = { v: "2", ps: name, add: HOST, port: "443", id: uuid, aid: "0",
+    scy: "auto", net: "ws", type: "none", host: HOST,
+    path: PATHS.vmess_free, tls: "tls", sni: HOST, alpn: "" };
+  return "vmess://" + b64encode(JSON.stringify(obj));
+}
+function qrUrl(link) {
+  return "https://api.qrserver.com/v1/create-qr-code/?size=150x150&data=" + encodeURIComponent(link);
+}
+function setApiState(on) {
+  apiOnline = on;
+  $("apiDot").className = "dot " + (on ? "on" : "off");
+  $("apiText").textContent = on ? "Panel online" : "Panel API belum online";
+  $("apiNotice").classList.toggle("show", !on);
+  $("btnClaim").disabled = !on;
+}
+
+function loadStats() {
+  fetch(API_BASE + "/api/stats")
+    .then(function (r) { if (!r.ok) throw new Error("http " + r.status); return r.json(); })
+    .then(function (s) {
+      setApiState(true);
+      if (s.host) HOST = s.host;
+      if (s.paths) PATHS = Object.assign(PATHS, s.paths);
+      $("statUsers").textContent = (s.users_active != null ? s.users_active : "—");
+      $("statUsersSub").textContent = "dari total " + (s.users_total != null ? s.users_total : "—") + " pengguna";
+      $("statBw").textContent = fmtBytes(s.bandwidth_used_bytes);
+      if (s.bandwidth_limit_bytes) {
+        var pct = Math.min(100, Math.round(s.bandwidth_used_bytes / s.bandwidth_limit_bytes * 100));
+        $("statBwBar").style.width = pct + "%";
+        if (pct > 80) $("statBwBar").classList.add("warn");
+        $("statBwSub").textContent = "dari limit " + fmtBytes(s.bandwidth_limit_bytes);
+      }
+      $("statMem").textContent = fmtBytes(s.mem_used_bytes);
+      if (s.mem_total_bytes) {
+        var mpct = Math.round(s.mem_used_bytes / s.mem_total_bytes * 100);
+        $("statMemBar").style.width = Math.min(100, mpct) + "%";
+        if (mpct > 80) $("statMemBar").classList.add("warn");
+        $("statMemSub").textContent = "sisa " + fmtBytes(s.mem_total_bytes - s.mem_used_bytes) +
+          " dari " + fmtBytes(s.mem_total_bytes);
+      }
+      if (s.run_started_at && s.max_run_minutes) {
+        var end = new Date(new Date(s.run_started_at).getTime() + s.max_run_minutes * 60000);
+        var left = end - Date.now();
+        if (left > 0) {
+          var m = Math.floor(left / 60000), h = Math.floor(m / 60);
+          $("statRestart").textContent = (h > 0 ? h + " jam " : "") + (m % 60) + " mnt lagi";
+          $("statRestartSub").textContent = "sesi dimulai " + fmtTime(s.run_started_at);
+        } else {
+          $("statRestart").textContent = "segera restart";
+          $("statRestartSub").textContent = "sesi habis, VM restart otomatis";
+        }
+      }
+    })
+    .catch(function () { setApiState(false); });
+}
+
+function showAccount(acc) {
+  currentAccount = acc;
+  var name = "ZEINTHHUB-" + (acc.username || "bansos");
+  var links = acc.links || {};
+  var vless = links.vless || buildVlessLink(acc.uuid, name);
+  var trojan = links.trojan || buildTrojanLink(acc.trojan_password, name);
+  var vmess = links.vmess || buildVmessLink(acc.uuid, name);
+  $("linkVless").textContent = vless;
+  $("linkTrojan").textContent = trojan;
+  $("linkVmess").textContent = vmess;
+  $("qrVless").src = qrUrl(vless);
+  $("qrTrojan").src = qrUrl(trojan);
+  $("qrVmess").src = qrUrl(vmess);
+  $("accountGrid").classList.remove("hidden");
+  if (acc.token) {
+    var url = location.origin + location.pathname + "?token=" + acc.token;
+    $("tokenLink").value = url;
+    $("myAccount").classList.remove("hidden");
+  }
+  if (acc.used_traffic_bytes != null) {
+    $("myUsed").textContent = fmtBytes(acc.used_traffic_bytes);
+    $("myStatus").textContent = acc.status || "aktif";
+    $("myOnline").textContent = fmtTime(acc.online_at);
+    $("myTraffic").classList.remove("hidden");
+  }
+  document.getElementById("accountGrid").scrollIntoView({ behavior: "smooth", block: "start" });
+}
+
+$("btnClaim").addEventListener("click", function () {
+  if (!apiOnline) { $("claimMsg").textContent = "Backend panel belum online."; return; }
+  $("claimMsg").textContent = "Membuat akun…";
+  $("btnClaim").disabled = true;
+  fetch(API_BASE + "/api/accounts", { method: "POST" })
+    .then(function (r) { if (!r.ok) throw new Error("http " + r.status); return r.json(); })
+    .then(function (acc) {
+      $("claimMsg").textContent = "Akunmu sudah jadi. Simpan link pribadimu.";
+      showAccount(acc);
+    })
+    .catch(function () { $("claimMsg").textContent = "Gagal membuat akun. Coba lagi sebentar."; })
+    .finally(function () { $("btnClaim").disabled = false; });
+});
+
+$("btnOpen").addEventListener("click", function () {
+  var v = $("tokenInput").value.trim();
+  var m = v.match(/token=([A-Za-z0-9\-_]+)/);
+  var token = m ? m[1] : v;
+  if (!token) return;
+  fetch(API_BASE + "/api/accounts/" + encodeURIComponent(token))
+    .then(function (r) { if (!r.ok) throw new Error("http " + r.status); return r.json(); })
+    .then(function (acc) { acc.token = token; showAccount(acc); })
+    .catch(function () { alert("Akun tidak ditemukan. Periksa lagi link pribadimu."); });
+});
+
+document.querySelectorAll("[data-copy]").forEach(function (btn) {
+  btn.addEventListener("click", function () {
+    var el = $(btn.getAttribute("data-copy"));
+    var text = el.value != null ? el.value : el.textContent;
+    function done() {
+      btn.textContent = "Tersalin";
+      btn.classList.add("copied");
+      setTimeout(function () {
+        btn.textContent = btn.getAttribute("data-copy") === "tokenLink" ? "Salin Link Pribadi" : "Salin Link";
+        btn.classList.remove("copied");
+      }, 2000);
+    }
+    if (navigator.clipboard && navigator.clipboard.writeText) {
+      navigator.clipboard.writeText(text).then(done, function () { fallbackCopy(text, done); });
+    } else { fallbackCopy(text, done); }
+  });
+});
+function fallbackCopy(text, done) {
+  var ta = document.createElement("textarea");
+  ta.value = text; document.body.appendChild(ta); ta.select();
+  try { document.execCommand("copy"); done(); } catch (e) { /* biarkan user salin manual */ }
+  document.body.removeChild(ta);
+}
+
+(function () {
+  var m = location.search.match(/token=([A-Za-z0-9\-_]+)/);
+  if (m) { $("tokenInput").value = m[1]; $("btnOpen").click(); }
+})();
+loadStats();
+setInterval(loadStats, 30000);
+</script>
+</body>
+</html>
