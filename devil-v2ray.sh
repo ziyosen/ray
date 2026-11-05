@@ -1,6 +1,7 @@
 #!/bin/sh
 
 #Config v2ray - VLESS + Trojan, both WebSocket, one tunnel
+#FREE paths (bansos, anti-jual-ulang): VLESS 8082 /vless/free/kontak-telegram-@Bleszh, Trojan 8083 /trojan/free/kontak-telegram-@Bleszh
 #VLESS: port $PORT, WS path /
 #Trojan: port $TROJAN_PORT (default 8081), WS path /trojan, password $TROJAN_PASSWORD
 #Tunnel ingress (1 tunnel, same hostname):
@@ -96,6 +97,49 @@ else
         "network": "ws",
         "wsSettings": {
           "path": "/trojan"
+        }
+      },
+      "sniffing": {
+        "enabled": true,
+        "destOverride": ["http", "tls"]
+      }
+    },
+    {
+      "port": 8082,
+      "protocol": "vless",
+      "settings": {
+        "decryption": "none",
+        "clients": [
+          {
+            "id": "$UUID"
+          }
+        ]
+      },
+      "streamSettings": {
+        "network": "ws",
+        "wsSettings": {
+          "path": "/vless/free/kontak-telegram-@Bleszh"
+        }
+      },
+      "sniffing": {
+        "enabled": true,
+        "destOverride": ["http", "tls"]
+      }
+    },
+    {
+      "port": 8083,
+      "protocol": "trojan",
+      "settings": {
+        "clients": [
+          {
+            "password": "$TROJAN_PASSWORD"
+          }
+        ]
+      },
+      "streamSettings": {
+        "network": "ws",
+        "wsSettings": {
+          "path": "/trojan/free/kontak-telegram-@Bleszh"
         }
       },
       "sniffing": {
