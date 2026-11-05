@@ -6,6 +6,8 @@
 #Tunnel ingress (1 tunnel, same hostname):
 #  path /trojan -> http://localhost:8081
 #  path /       -> http://localhost:8080
+#DNS fix: explicit DNS 1.1.1.1/8.8.8.8, IPv4 only (avoid IPv6 AAAA breaking browsing)
+#Sniffing: enabled on both inbounds so Xray can route by domain from TLS/HTTP
 
 rm -rf /etc/xray/config.json
 
@@ -15,6 +17,10 @@ if [ -z "$TROJAN_PASSWORD" ]; then
   echo "TROJAN_PASSWORD not set, running VLESS only"
   cat << EOF > /etc/xray/config.json
 {
+  "dns": {
+    "servers": ["1.1.1.1", "8.8.8.8"],
+    "queryStrategy": "UseIPv4"
+  },
   "inbounds": [
     {
       "port": $PORT,
@@ -32,6 +38,10 @@ if [ -z "$TROJAN_PASSWORD" ]; then
         "wsSettings": {
           "path": "/"
         }
+      },
+      "sniffing": {
+        "enabled": true,
+        "destOverride": ["http", "tls"]
       }
     }
   ],
@@ -45,6 +55,10 @@ EOF
 else
   cat << EOF > /etc/xray/config.json
 {
+  "dns": {
+    "servers": ["1.1.1.1", "8.8.8.8"],
+    "queryStrategy": "UseIPv4"
+  },
   "inbounds": [
     {
       "port": $PORT,
@@ -62,6 +76,10 @@ else
         "wsSettings": {
           "path": "/"
         }
+      },
+      "sniffing": {
+        "enabled": true,
+        "destOverride": ["http", "tls"]
       }
     },
     {
@@ -79,6 +97,10 @@ else
         "wsSettings": {
           "path": "/trojan"
         }
+      },
+      "sniffing": {
+        "enabled": true,
+        "destOverride": ["http", "tls"]
       }
     }
   ],
