@@ -6,8 +6,13 @@
     "env": {
         "UUID": {
             "description": "𝕧2ray UUID,You can generate new UUID using this website (https://www.uuidgenerator.net) ",
-            "required": true        
-        }
+            "required": true        },
+        "TROJAN_PASSWORD": {
+            "description": "Trojan password for the Trojan WS inbound (WS path /trojan, port 8081 by default). Leave empty to run VLESS only.",
+            "required": false        },
+        "TROJAN_PORT": {
+            "description": "Trojan WS inbound port, default 8081",
+            "required": false        }
     },
     "repository": "https://github.com/malindunimsara/heroku-v2ray",
     "stack": "container"
