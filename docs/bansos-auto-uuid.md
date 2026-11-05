@@ -23,41 +23,56 @@ sendiri secara otomatis, dan seperti apa web UI-nya.
   mengaktifkan `stats` + inbound `api`, dan tiap client diberi `email`.
   Itu tahap 2; tahap 1 cukup tampilkan traffic total dulu.
 
-## Opsi A: panel jadi (3x-ui) — cepat, bukan custom
+## Opsi A: panel jadi — Marzban (referensi Bos, 2026-11-06) atau 3x-ui
 
-- Panel web open-source (Go + Xray-core, SQLite) oleh MHSanaei:
-  `github.com/MHSanaei/3x-ui`, install satu baris.
-- Sudah bisa: tambah client per inbound, UUID otomatis, QR code, link
-  share, kuota traffic, tanggal kedaluwarsa, batas IP, statistik
-  per-user, subscription link.
-- Kekurangan buat kita: UI-nya generik (bukan dashboard keren sesuai
-  rencana), perlu port + rule tunnel sendiri, dan README-nya bilang
-  "intended for personal use only". Cocok sebagai jalan pintas atau
-  referensi, bukan sebagai wajah bansos.
+**Marzban** (`github.com/gozargah/marzban`, referensi yang Bos kirim):
+panel Xray berbasis Python + React, 7.5k stars, AGPL-3.0, aktif sejak
+2022. Fitur yang relevan buat kita: Web UI bawaan, **REST API lengkap**,
+multi-user per inbound, VLESS/Trojan/Shadowsocks, batas traffic +
+tanggal kedaluwarsa (+ batas periodik harian/mingguan), subscription
+link (V2Ray/Clash), share link + QR generator, monitoring sistem +
+statistik traffic, config Xray bisa dikustom, **Telegram Bot terintegrasi**,
+CLI. Install satu baris (SQLite) atau Docker, dashboard port 8000.
 
-## Opsi B (direkomendasikan): layanan kecil custom, dibangun Hermes
+- Kekuatan vs 3x-ui: lebih matang dan lebih besar, punya REST API dan
+  Telegram Bot (nyambung sama jalur kontak Telegram `@Bleszh` kita),
+  dan multi-node kalau nanti pindah VPS.
+- Kekurangan: ini **panel admin**, bukan halaman publik self-service —
+  akun dibuat oleh admin, bukan diambil sendiri oleh pengunjung. Dan
+  lebih berat (Python + dashboard React, port sendiri).
+- **3x-ui** (`github.com/MHSanaei/3x-ui`): alternatif yang lebih ringan
+  (satu binary Go, SQLite), fitur intinya sama (UUID otomatis, QR,
+  kuota, statistik per-user), tapi UI generik dan README-nya bilang
+  "intended for personal use only".
 
-Layanan web kecil (Node/Python + SQLite) jalan di VM `node` sebagai
-container sendiri, mis. port 3000, diekspos lewat rule tunnel baru
-(mis. subdomain `bansos.xinquins.de5.net` atau path di `clay`).
-Muse riset/desain/review, Hermes yang bangun (sesuai pembagian kerja tim).
+**Jalan tengah yang paling masuk akal:** pakai Marzban sebagai mesin
+manajemen user (dia yang urus config Xray + restart + traffic), lalu
+halaman publik "Ambil Akun" yang kecil memanggil **REST API Marzban**
+untuk membuat user baru. Hermes jadi tidak perlu menulis ulang logika
+config/restart — tinggal bikin halaman ambil akun + dashboard bansos
+(RAM, info restart VM, kontributor) di atas API yang sudah jadi.
+
+## Opsi B (direkomendasikan): Marzban + halaman publik kecil, dibangun Hermes
+
+Marzban jalan di VM `node` sebagai container sendiri (port 8000,
+diekspos lewat rule tunnel, TLS tetap di Cloudflare). Halaman publik
+"Ambil Akun" + dashboard bansos (Node/Python kecil, mis. port 3000)
+memanggil REST API Marzban. Muse riset/desain/review, Hermes yang
+bangun (sesuai pembagian kerja tim).
 
 ### Alur "Ambil Akun" (otomatis)
 
 1. Orang buka web bansos, isi nama / username Telegram (opsional, buat
    batasan anti-abuse), klik **Ambil Akun**.
-2. Server generate **UUID v4 acak** (VLESS) + **password Trojan acak**,
-   simpan ke database (SQLite, file mode 600, bukan di dalam kode).
-3. Server tulis ulang `config.json` Xray (tambah 1 client di inbound
-   VLESS 8082 + 1 client di inbound Trojan 8083), lalu restart
-   container Xray (~1-2 detik).
-4. Web menampilkan link VLESS + link Trojan + QR code, sekali tampil
+2. Halaman publik memanggil REST API Marzban untuk membuat user baru
+   (Marzban yang generate UUID + atur client di inbound VLESS 8082
+   dan Trojan 8083, termasuk restart Xray ~1-2 detik).
+3. Web menampilkan link VLESS + link Trojan + QR code, sekali tampil
    (pengguna disuruh simpan). Path keduanya tetap yang gratisan:
    `/vless/free/kontak-telegram-@Bleszh` dan
    `/trojan/free/kontak-telegram-@Bleszh`.
-5. Bos bisa menonaktifkan / menghapus satu akun dari dashboard admin
-   (hapus dari daftar client + restart). Akun yang dijual orang lain
-   tinggal dimatikan, yang lain tetap jalan.
+4. Bos bisa menonaktifkan / menghapus satu akun dari dashboard Marzban.
+   Akun yang dijual orang lain tinggal dimatikan, yang lain tetap jalan.
 
 ### Dashboard publik (sesuai rencana 2026-11-06)
 
@@ -80,7 +95,8 @@ Muse riset/desain/review, Hermes yang bangun (sesuai pembagian kerja tim).
 1. Domain web bansos: subdomain baru atau path di `clay`?
 2. Perlu isi Telegram atau boleh anonim? Batas akun per orang berapa?
 3. Kuota traffic per akun atau bebas dulu?
-4. 3x-ui dipakai sebagai jalan pintas sementara, atau langsung custom?
+4. Marzban langsung atau halaman custom di atas API-nya? (Rekomendasi:
+   Marzban + halaman publik kecil.)
 
 ## Langkah berikut
 
