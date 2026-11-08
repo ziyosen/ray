@@ -82,10 +82,10 @@ def gen_links(u: str, tp: str, sni: str = None):
     sni = sni or HOST
     tgq = TG.replace("@", "%40")
     vless = (f"vless://{u}@{HOST}:443?encryption=none&security=tls&sni={sni}"
-             f"&type=ws&host={HOST}&path=%2Fvless%2Ffree%2F{tgq}#ZeinthHub-Project-VLESS")
+             f"&type=ws&host={HOST}&path=%2Fvless%2Ffree%2F{tgq}#ZEINTH-HUB-VLESS")
     trojan = (f"trojan://{tp}@{HOST}:443?security=tls&sni={sni}"
-              f"&type=ws&host={HOST}&path=%2Ftrojan%2Ffree%2F{tgq}#ZeinthHub-Project-Trojan")
-    vmess_payload = {"v": "2", "ps": "ZeinthHub-Project-VMess", "add": HOST, "port": "443",
+              f"&type=ws&host={HOST}&path=%2Ftrojan%2Ffree%2F{tgq}#ZEINTH-HUB-Trojan")
+    vmess_payload = {"v": "2", "ps": "ZEINTH-HUB-VMess", "add": HOST, "port": "443",
                      "id": u, "aid": "0", "net": "ws", "host": HOST,
                      "path": f"/vmess/free/{TG}", "tls": "tls", "sni": sni}
     vmess = "vmess://" + b64.urlsafe_b64encode(json.dumps(vmess_payload).encode()).decode()
@@ -215,10 +215,10 @@ class H(BaseHTTPRequestHandler):
             links = gen_links(r["uuid"], r["trojan_password"])
             name = html.escape(r["username"] or "pengguna")
             esc = lambda s: html.escape(s, quote=True)
-            body = f"""<html><head><meta charset=utf-8><title>Akun ZeinthHub Project</title>
+            body = f"""<html><head><meta charset=utf-8><title>Akun ZEINTH-HUB</title>
             <style>body{{font-family:system-ui;background:#0b141a;color:#e9edef;padding:24px;max-width:640px;margin:auto}}
             .c{{background:#202c33;padding:16px;border-radius:12px;margin:12px 0}}code{{word-break:break-all;color:#67e8f9}}</style></head>
-            <body><h1>Akun ZeinthHub Project kamu</h1><p>Halo {name}! Simpan halaman ini (link pribadi, tanpa login).</p>
+            <body><h1>Akun ZEINTH-HUB kamu</h1><p>Halo {name}! Simpan halaman ini (link pribadi, tanpa login).</p>
             <div class=c><b>VLESS</b><br><code>{esc(links['vless'])}</code></div>
             <div class=c><b>Trojan</b><br><code>{esc(links['trojan'])}</code></div>
             <div class=c><b>VMess</b><br><code>{esc(links['vmess'])}</code></div>
