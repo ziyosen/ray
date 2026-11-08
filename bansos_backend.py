@@ -22,6 +22,7 @@ import json
 import os
 import secrets
 import sqlite3
+import subprocess
 import threading
 import uuid
 from http.server import BaseHTTPRequestHandler, ThreadingHTTPServer
@@ -137,6 +138,37 @@ def write_xray_clients(rows):
         raise
 
 
+
+XRAY_BIN = os.environ.get("BANSOS_XRAY_BIN", "xray")
+XRAY_API = os.environ.get("BANSOS_XRAY_API", "127.0.0.1:10085")
+
+def query_xray_traffic():
+    """Query Xray stats API via subprocess. Return {email: {'up': int, 'down': int}}."""
+    try:
+        r = subprocess.run([XRAY_BIN, "api", "statsquery", f"--server={XRAY_API}",
+                            "-pattern", "user>>>"], capture_output=True, text=True, timeout=10)
+        if r.returncode != 0:
+            return {}
+        out = json.loads(r.stdout)
+        result = {}
+        for st in out.get("stats", []):
+            name = st.get("name", "")
+            val = int(st.get("value", 0))
+            # format: user>>>EMAIL>>>traffic>>>uplink|downlink
+            parts = name.split(">>>")
+            if len(parts) >= 4 and parts[0] == "user":
+                email = parts[1]
+                kind = parts[3]
+                result.setdefault(email, {"up": 0, "down": 0})
+                if kind == "uplink":
+                    result[email]["up"] += val
+                elif kind == "downlink":
+                    result[email]["down"] += val
+        return result
+    except Exception as e:
+        print("[bansos] traffic query failed:", e)
+        return {}
+
 def restart_xray():
     if RESTART_CMD:
         os.system(RESTART_CMD)
@@ -182,6 +214,17 @@ class H(BaseHTTPRequestHandler):
     def do_GET(self):
         p = urlparse(self.path).path
         if p == "/api/stats":
+            # refresh traffic dari Xray ke DB (OPSI B)
+            traffic = query_xray_traffic()
+            if traffic:
+                with db() as c:
+                    for row in c.execute("SELECT token, uuid FROM accounts WHERE status='active'").fetchall():
+                        email = "acc-" + row["token"][:8]
+                        t = traffic.get(email)
+                        if t:
+                            total = t["up"] + t["down"]
+                            c.execute("UPDATE accounts SET used_traffic_bytes=? WHERE token=?",
+                                      (total, row["token"]))
             with db() as c:
                 n = c.execute("SELECT COUNT(*) n FROM accounts WHERE status='active'").fetchone()["n"]
                 mem = os.popen("free -b | awk 'NR==2{print $3\" \"$2}'").read().split()
@@ -189,7 +232,7 @@ class H(BaseHTTPRequestHandler):
                 mem_total = int(mem[1]) if len(mem) == 2 else 0
             return self._json(200, {
                 "users_active": n, "users_total": n,
-                "bandwidth_used_bytes": 0, "bandwidth_limit_bytes": None,
+                "bandwidth_used_bytes": (lambda c: c.execute("SELECT COALESCE(SUM(used_traffic_bytes),0) s FROM accounts").fetchone()["s"])(c), "bandwidth_limit_bytes": None,
                 "mem_used_bytes": mem_used, "mem_total_bytes": mem_total,
                 "run_started_at": RUN_STARTED_AT, "max_run_minutes": MAX_RUN_MINUTES,
                 "host": HOST, "paths": _paths,
