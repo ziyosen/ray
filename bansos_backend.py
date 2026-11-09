@@ -75,7 +75,6 @@ def get_run_started_at():
         pass
     return RUN_STARTED_AT
 
-RUN_STARTED_AT = datetime.datetime.utcnow().strftime("%Y-%m-%dT%H:%M:%SZ")
 MAX_RUN_MINUTES = int(os.environ.get("BANSOS_MAX_RUN_MINUTES", "120"))  # VM max 2 jam per sesi
 
 def init_db():
@@ -250,7 +249,7 @@ class H(BaseHTTPRequestHandler):
                 "users_active": n, "users_total": n,
                 "bandwidth_used_bytes": (lambda c: c.execute("SELECT COALESCE(SUM(used_traffic_bytes),0) s FROM accounts").fetchone()["s"])(c), "bandwidth_limit_bytes": None,
                 "mem_used_bytes": mem_used, "mem_total_bytes": mem_total,
-                "run_started_at": RUN_STARTED_AT, "max_run_minutes": MAX_RUN_MINUTES,
+                "run_started_at": get_run_started_at(), "max_run_minutes": MAX_RUN_MINUTES,
                 "host": HOST, "paths": _paths,
             })
         if p.startswith("/api/accounts/"):
