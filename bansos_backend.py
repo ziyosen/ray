@@ -59,6 +59,22 @@ def db():
     return con
 
 
+def get_run_started_at():
+    """Waktu mulai sesi nyata = waktu start container Xray (docker inspect).
+    Fallback: waktu start proses backend ini. Di-refresh tiap request agar
+    timer 'Restart Berikutnya' selalu akurat (sesi VM ~120 menit)."""
+    global RUN_STARTED_AT
+    try:
+        r = subprocess.run(["docker", "inspect", "-f", "{{.State.StartedAt}}", "xray"],
+                           capture_output=True, text=True, timeout=5)
+        if r.returncode == 0 and r.stdout.strip():
+            # format docker: 2026-11-09T03:25:49.123456789Z -> ambil 19 char, +Z
+            t = r.stdout.strip()[:19]
+            RUN_STARTED_AT = datetime.datetime.strptime(t, "%Y-%m-%dT%H:%M:%S").strftime("%Y-%m-%dT%H:%M:%SZ")
+    except Exception:
+        pass
+    return RUN_STARTED_AT
+
 RUN_STARTED_AT = datetime.datetime.utcnow().strftime("%Y-%m-%dT%H:%M:%SZ")
 MAX_RUN_MINUTES = int(os.environ.get("BANSOS_MAX_RUN_MINUTES", "120"))  # VM max 2 jam per sesi
 
