@@ -59,6 +59,8 @@ def db():
     return con
 
 
+RUN_STARTED_AT = datetime.datetime.utcnow().strftime("%Y-%m-%dT%H:%M:%SZ")
+
 def get_run_started_at():
     """Waktu mulai sesi nyata = waktu start container Xray (docker inspect).
     Fallback: waktu start proses backend ini. Di-refresh tiap request agar
